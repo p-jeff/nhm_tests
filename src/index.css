@@ -1,0 +1,11 @@
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #2f4f4f; /* Dark Slate Gray */
+}
+
+canvas {
+  display: block;
+}
