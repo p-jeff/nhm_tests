@@ -8,8 +8,10 @@ import * as THREE from "three";
 
 const store = createXRStore();
 
-function Model({ fullAnimation, isDiscovered, outlineAnimation }) {
-  const { scene, animations } = useGLTF("/mixamo_outline.glb");
+const modelPath = process.env.PUBLIC_URL + "/mixamo_outline.glb";
+
+function Model({ fullAnimation, isDiscovered, outlineAnimation, isOverlayVisible }) {
+  const { scene, animations } = useGLTF(modelPath);
   const { ref, actions, mixer } = useAnimations(animations);
   console.log(animations);
   const [outlinesCompleted, setOutlinesCompleted] = useState(false);
@@ -22,7 +24,7 @@ function Model({ fullAnimation, isDiscovered, outlineAnimation }) {
 
   // Start the outline animation once the Scene is loaded
   useEffect(() => {
-    if (actions && outlineAnimation && actions[outlineAnimation]) {
+    if (!isOverlayVisible && actions && outlineAnimation && actions[outlineAnimation]) {
       actions[outlineAnimation].reset().play();
       actions[outlineAnimation].setLoop(THREE.LoopOnce);
       actions[outlineAnimation].clampWhenFinished = true;
@@ -41,7 +43,7 @@ function Model({ fullAnimation, isDiscovered, outlineAnimation }) {
         mixer.removeEventListener("finished", onFinished);
       };
     }
-  }, [actions, outlineAnimation, mixer]);
+  }, [isOverlayVisible, actions, outlineAnimation, mixer]);
 
   /* 
   // Search for the outlines and hide them once the other animation starts running.
@@ -114,15 +116,61 @@ function CameraController({ setIsDiscovered, setBloomIntensity }) {
   return null;
 }
 
+function Overlay({ isVisible, setIsVisible }) {
+
+  const handleVR = () => {
+    setIsVisible(false);
+    store.enterAR();
+  };
+
+  const handleScreen = () => {
+    setIsVisible(false);
+  };
+
+  return (
+    isVisible && (
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          color: "white",
+          flexDirection: "column",
+        }}
+      >
+        <h2>Outlines Mixamo Prototype</h2>
+        <p>
+          The outlines will turn slightly red once in correct position.
+          <br/>
+          <br/>
+          In AR, the model is positioned at 0,0. Load AR and then refocus the quest to position the model in space.
+          <br/>
+          <br/>
+          In browser, use Orbit Controls to move the camera. Scroll to zoom.
+          <br/>
+          Page needs to be reloaded to reset.
+        </p>
+        <button onClick={handleVR}>Enter AR</button>
+        <button onClick={handleScreen}>Stay in Browser</button>
+      </div>
+    )
+  );
+}
+
 export default function MixamoOutline() {
   const [isPaused, setIsPaused] = useState(true);
   const [isDiscovered, setIsDiscovered] = useState(false);
   const [bloomIntensity, setBloomIntensity] = useState(0);
+  const [isOverlayVisible, setIsOverlayVisible] = useState(true);
 
   return (
     <>
-      <button onClick={() => store.enterVR()}>Enter VR</button>
-      <button onClick={() => store.enterAR()}>Enter AR</button>
       <Canvas shadows>
         <XR store={store}>
           <Suspense>
@@ -142,6 +190,7 @@ export default function MixamoOutline() {
               isPaused={isPaused}
               setIsPaused={setIsPaused}
               isDiscovered={isDiscovered}
+              isOverlayVisible={isOverlayVisible}
             />
             <OrbitControls target={[0, 1, 0]} />
           </Suspense>
@@ -150,6 +199,7 @@ export default function MixamoOutline() {
           <Bloom luminanceThreshold={0} mipmapBlur intensity={bloomIntensity} />
         </EffectComposer> */}
       </Canvas>
+      <Overlay isVisible={isOverlayVisible} setIsVisible={setIsOverlayVisible}/>
     </>
   );
 }
