@@ -10,7 +10,12 @@ const store = createXRStore();
 
 const modelPath = process.env.PUBLIC_URL + "/mixamo_outline.glb";
 
-function Model({ fullAnimation, isDiscovered, outlineAnimation, isOverlayVisible }) {
+function Model({
+  fullAnimation,
+  isDiscovered,
+  outlineAnimation,
+  isOverlayVisible,
+}) {
   const { scene, animations } = useGLTF(modelPath);
   const { ref, actions, mixer } = useAnimations(animations);
   console.log(animations);
@@ -24,7 +29,12 @@ function Model({ fullAnimation, isDiscovered, outlineAnimation, isOverlayVisible
 
   // Start the outline animation once the Scene is loaded
   useEffect(() => {
-    if (!isOverlayVisible && actions && outlineAnimation && actions[outlineAnimation]) {
+    if (
+      !isOverlayVisible &&
+      actions &&
+      outlineAnimation &&
+      actions[outlineAnimation]
+    ) {
       actions[outlineAnimation].reset().play();
       actions[outlineAnimation].setLoop(THREE.LoopOnce);
       actions[outlineAnimation].clampWhenFinished = true;
@@ -117,10 +127,14 @@ function CameraController({ setIsDiscovered, setBloomIntensity }) {
 }
 
 function Overlay({ isVisible, setIsVisible }) {
+  const handleAR = () => {
+    setIsVisible(false);
+    store.enterAR();
+  };
 
   const handleVR = () => {
     setIsVisible(false);
-    store.enterAR();
+    store.enterVR();
   };
 
   const handleScreen = () => {
@@ -147,16 +161,18 @@ function Overlay({ isVisible, setIsVisible }) {
         <h2>Outlines Mixamo Prototype</h2>
         <p>
           The outlines will turn slightly red once in correct position.
-          <br/>
-          <br/>
-          In AR, the model is positioned at 0,0. Load AR and then refocus the quest to position the model in space.
-          <br/>
-          <br/>
+          <br />
+          <br />
+          In AR, the model is positioned at 0,0. Load AR and then refocus the
+          quest to position the model in space.
+          <br />
+          <br />
           In browser, use Orbit Controls to move the camera. Scroll to zoom.
-          <br/>
+          <br />
           Page needs to be reloaded to reset.
         </p>
-        <button onClick={handleVR}>Enter AR</button>
+        <button onClick={handleAR}>Enter AR</button>
+        <button onClick={handleVR}>Enter VR</button>
         <button onClick={handleScreen}>Stay in Browser</button>
       </div>
     )
@@ -195,11 +211,12 @@ export default function MixamoOutline() {
             <OrbitControls target={[0, 1, 0]} />
           </Suspense>
         </XR>
-        {/* <EffectComposer>
-          <Bloom luminanceThreshold={0} mipmapBlur intensity={bloomIntensity} />
-        </EffectComposer> */}
+        
       </Canvas>
-      <Overlay isVisible={isOverlayVisible} setIsVisible={setIsOverlayVisible}/>
+      <Overlay
+        isVisible={isOverlayVisible}
+        setIsVisible={setIsOverlayVisible}
+      />
     </>
   );
 }
