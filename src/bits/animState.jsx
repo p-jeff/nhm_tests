@@ -2,11 +2,11 @@ import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { Suspense, useEffect, useState } from "react";
-import { LineBasicMaterial, BufferGeometry, Line, Float32BufferAttribute } from 'three';
+import { LineBasicMaterial, BufferGeometry, Line} from 'three';
 
 function Model({ actionName, frame, isPaused }) {
   const { scene, animations } = useGLTF("/suzaneLine.glb");
-  const { ref, mixer, names, actions, clips } = useAnimations(animations);
+  const { ref, actions } = useAnimations(animations);
 
   console.log(scene);
 

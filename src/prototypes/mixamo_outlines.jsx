@@ -1,26 +1,40 @@
 import { OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { createXRStore, XR } from "@react-three/xr";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
+// I tried adding bloom as a method to give feedback but it doesn't seem to work with the current version of react-three-fiber
+// import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 
 const store = createXRStore();
 
-const modelPath = process.env.PUBLIC_URL + "/mixamo_outline.glb";
+/* 
+the GLB contains two meshes, one for the outlines and one for the later animation. Both Meshes contain an action.
+The outline very slowy start moving together so that if the user does not manage in time, the model will still be discovered.
+*/
 
 function Model({
   fullAnimation,
   isDiscovered,
   outlineAnimation,
   isOverlayVisible,
+  modelPath
 }) {
   const { scene, animations } = useGLTF(modelPath);
   const { ref, actions, mixer } = useAnimations(animations);
-  console.log(animations);
-  const [outlinesCompleted, setOutlinesCompleted] = useState(false);
 
+  // Define the function to play the full animation
+  const playAnimation = useCallback(() => {
+    console.log("Playing full animation");
+    scene.children[0].visible = true;
+    actions[fullAnimation].setLoop(THREE.LoopOnce);
+    actions[fullAnimation].clampWhenFinished = true;
+    actions[fullAnimation].time = 0;
+    actions[fullAnimation].play();
+  }, [actions, fullAnimation, scene.children]);
+
+  // hide the full model on scene load
   useEffect(() => {
     if (scene.children.length > 0) {
       scene.children[0].visible = false;
@@ -35,14 +49,18 @@ function Model({
       outlineAnimation &&
       actions[outlineAnimation]
     ) {
-      actions[outlineAnimation].reset().play();
+      // Settings for outline Animation
       actions[outlineAnimation].setLoop(THREE.LoopOnce);
       actions[outlineAnimation].clampWhenFinished = true;
+      // Slow down the outline animation, so the user has time to discover the model.
       actions[outlineAnimation].timeScale = 0.1;
 
+      actions[outlineAnimation].reset().play();
+
+      // Once the outline animation is finished, play the full animation.
       const onFinished = (e) => {
         if (e.action === actions[outlineAnimation]) {
-          setOutlinesCompleted(true);
+          playAnimation();
           console.log("Outlines completed");
         }
       };
@@ -53,72 +71,46 @@ function Model({
         mixer.removeEventListener("finished", onFinished);
       };
     }
-  }, [isOverlayVisible, actions, outlineAnimation, mixer]);
-
-  /* 
-  // Search for the outlines and hide them once the other animation starts running.
-
-  useEffect(() => {
-    if (isDiscovered) {
-      for (let i = 1; i < scene.children.length; i++) {
-        scene.children[i].visible = false;
-      }
-    }
-  }, [scene, isDiscovered]);
-  */
+  }, [isOverlayVisible, actions, outlineAnimation, mixer, playAnimation]);
 
   // Speed up the outline animation while the model is discovered.
+  // useEffect will run every time there is an update to one of the dependencies
   useEffect(() => {
     if (isDiscovered && actions[outlineAnimation]) {
       actions[outlineAnimation].timeScale = 3;
       scene.traverse((child) => {
         if (child.isMesh && child.name === "Flat") {
-          child.material.color.set(0xff0000); // Change to desired color
+          child.material.color.set(0xff0000); // Change to red as an indicator that the correct position has been found
         }
       });
     } else if (!isDiscovered && actions[outlineAnimation]) {
       actions[outlineAnimation].timeScale = 0.1;
       scene.traverse((child) => {
         if (child.isMesh && child.name === "Flat") {
-          child.material.color.set(0xffffff); // Change to desired color
+          child.material.color.set(0xffffff); // Change to white to indicate that user in not in the correct position
         }
       });
     }
   }, [isDiscovered, actions, outlineAnimation, scene]); //this will run when isDiscovered changes
 
-  useEffect(() => {
-    if (outlinesCompleted) {
-      console.log("Playing full animation");
-      scene.children[0].visible = true;
-      actions[fullAnimation].setLoop(THREE.LoopOnce);
-      actions[fullAnimation].clampWhenFinished = true;
-      actions[fullAnimation].time = 0;
-      actions[fullAnimation].play();
-    }
-  }, [outlinesCompleted, scene, actions, fullAnimation]);
-
   return <primitive ref={ref} object={scene} position={[0, 0, 0]} />;
 }
 
 // this checks whether the camera is within the specified position.
-function CameraController({ setIsDiscovered, setBloomIntensity }) {
-  const targetX = 0.6;
-  const targetY = 1.5;
-  const marginOfError = 0.1; // Adjust this value as needed for more precision
-
+function CameraController({ setIsDiscovered, setBloomIntensity, target }) {
   useFrame(({ camera }) => {
     if (camera) {
       const { x, y, z } = camera.position;
       if (
-        Math.abs(x - targetX) <= marginOfError &&
-        Math.abs(y - targetY) < marginOfError &&
+        Math.abs(x - target.x) <= target.margin &&
+        Math.abs(y - target.y) < target.margin &&
         z > 0
       ) {
         setIsDiscovered(true);
-        setBloomIntensity(1);
+        //   setBloomIntensity(1);
       } else {
         setIsDiscovered(false);
-        setBloomIntensity(0.2);
+        // setBloomIntensity(0.2);
       }
     }
   });
@@ -182,8 +174,16 @@ function Overlay({ isVisible, setIsVisible }) {
 export default function MixamoOutline() {
   const [isPaused, setIsPaused] = useState(true);
   const [isDiscovered, setIsDiscovered] = useState(false);
-  const [bloomIntensity, setBloomIntensity] = useState(0);
+  // const [bloomIntensity, setBloomIntensity] = useState(0);
   const [isOverlayVisible, setIsOverlayVisible] = useState(true);
+
+  // Here are all settings
+  const modelPath = process.env.PUBLIC_URL + "/mixamo_outline.glb";
+
+  const fullAnimationName = "Armature.001"; 
+  const outlineAnimationName = "Outlines";
+
+  const targetArea = { x: 0.6, y: 1.5, margin: 0.1 };
 
   return (
     <>
@@ -193,7 +193,8 @@ export default function MixamoOutline() {
             <CameraController
               isDiscovered={isDiscovered}
               setIsDiscovered={setIsDiscovered}
-              setBloomIntensity={setBloomIntensity}
+              target={targetArea}
+              // setBloomIntensity={setBloomIntensity}
             />
             <directionalLight
               position={[3.3, 1.0, 4.4]}
@@ -201,17 +202,17 @@ export default function MixamoOutline() {
               intensity={Math.PI * 2}
             />
             <Model
-              fullAnimation={"Armature.001"}
-              outlineAnimation={"Outlines"}
+              fullAnimation={fullAnimationName}
+              outlineAnimation={outlineAnimationName}
               isPaused={isPaused}
               setIsPaused={setIsPaused}
               isDiscovered={isDiscovered}
               isOverlayVisible={isOverlayVisible}
+              modelPath={modelPath}
             />
             <OrbitControls target={[0, 1, 0]} />
           </Suspense>
         </XR>
-        
       </Canvas>
       <Overlay
         isVisible={isOverlayVisible}

@@ -2,7 +2,6 @@ import React, { useRef, useState } from "react";
 import { useDrag } from "@use-gesture/react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { createXRStore, XR, XROrigin } from "@react-three/xr";
-import { OrbitControls } from "@react-three/drei";
 
 const store = createXRStore();
 

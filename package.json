@@ -1,6 +1,6 @@
 {
   "name": "nhm_tests",
-  "homepage": "https://p-jeff.github.io/nhm_tests",
+
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -47,3 +47,5 @@
     "gh-pages": "^6.1.1"
   }
 }
+
+
