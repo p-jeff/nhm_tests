@@ -12,6 +12,10 @@ const store = createXRStore();
 /* 
 the GLB contains two meshes, one for the outlines and one for the later animation. Both Meshes contain an action.
 The outline very slowy start moving together so that if the user does not manage in time, the model will still be discovered.
+
+It would be preferable if the outline could be a line only, but at some point between Blender and Three.js, simple lines get lost / inacessible so i had to use a mesh for this prototype.
+
+-> Lines would offer different interactivity and ways for feedback.
 */
 
 function Model({
@@ -54,7 +58,6 @@ function Model({
       actions[outlineAnimation].clampWhenFinished = true;
       // Slow down the outline animation, so the user has time to discover the model.
       actions[outlineAnimation].timeScale = 0.1;
-
       actions[outlineAnimation].reset().play();
 
       // Once the outline animation is finished, play the full animation.
