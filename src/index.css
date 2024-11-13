@@ -35,3 +35,9 @@ button {
 button:hover {
   background-color: #b8b8b8; /* Darker Green */
 }
+
+#scan {
+  background-color: #fff;
+  width: 100%;
+  height: 100%;
+}

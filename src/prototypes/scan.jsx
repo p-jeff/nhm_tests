@@ -3,9 +3,7 @@ import { Image, OrbitControls, PositionalAudio } from "@react-three/drei";
 import PoissonDiskSampling from "poisson-disk-sampling";
 import * as THREE from "three";
 import { useEffect, useState, useRef } from "react";
-import "./scan.css";
 import { EffectComposer, Vignette } from '@react-three/postprocessing'
-import { BlendFunction, Effect } from 'postprocessing'
 
 function ImageWithSound({ url, position, soundUrl, scale }) {
   const sound = useRef();
