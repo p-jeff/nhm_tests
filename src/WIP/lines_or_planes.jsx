@@ -1,116 +1,133 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
-import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { Line2 } from "three/examples/jsm/lines/Line2";
-import { EdgesGeometry } from 'three';
-import { LineSegments } from 'three';
-import { LineBasicMaterial } from 'three';
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
+import * as THREE from "three";
+import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import { useControls } from "leva"; 
+import LineThicknessController from "./lines_planes/LineThicknessController";
 
-
-const Model = ({ url }) => {
+const Model = ({ url, materialRef }) => {
   const { scene } = useGLTF(url);
- // const linesRef = useRef([]);
-
- console.log(scene);
-
-  const edgesRef = useRef([]);
 
   useEffect(() => {
-    // Find all objects with PlaneGeometry
-    const edges = [];
-    const planes = [];
+    const planarObjects = [];
+    const perspectiveObjects = [];
+    const otherObjects = [];
 
-    // First, collect all planes
     scene.traverse((child) => {
-        if (child.isMesh && child.name.includes('Vert')) {
-            planes.push(child);
+      if (child) {
+        if (child.name.includes("planar")) {
+          planarObjects.push(child);
+        } else if (child.name.includes("perspective")) {
+          perspectiveObjects.push(child);
+        } else {
+          otherObjects.push(child);
         }
+      }
     });
 
-    // Then, process each plane
-    planes.forEach((plane) => {
-        const edgesGeometry = new EdgesGeometry(plane.geometry);
-        const positions = edgesGeometry.attributes.position.array;
-        const lineGeometry = new LineGeometry();
-        lineGeometry.setPositions(positions);
+    // Convert and store materials for animation
+    planarObjects.forEach((object) => {
+      if (object.geometry) {
+        const geometry = new LineGeometry();
 
-        const lineMaterial = new LineMaterial({ color: 0xffffff, linewidth: 1 });
-        const edgesLine = new Line2(lineGeometry, lineMaterial);
+        // Get world positions to preserve positioning
+        const worldPositions = [];
+        const positionAttribute = object.geometry.attributes.position;
+        const vertex = new THREE.Vector3();
 
-        edgesLine.position.copy(plane.position);
-        edgesLine.rotation.copy(plane.rotation);
-        edgesLine.scale.copy(plane.scale);
+        // Store first vertex coordinates to close the loop
+        let firstX, firstY, firstZ;
 
-        edges.push(edgesLine);
-        scene.add(edgesLine);
-        scene.remove(plane); // Remove the plane from the scene
+        for (let i = 0; i < positionAttribute.count; i++) {
+          vertex.fromBufferAttribute(positionAttribute, i);
+          vertex.applyMatrix4(object.matrixWorld);
+          worldPositions.push(vertex.x, vertex.y, vertex.z);
+
+          // Save first vertex coordinates
+          if (i === 0) {
+            firstX = vertex.x;
+            firstY = vertex.y;
+            firstZ = vertex.z;
+          }
+        }
+
+        // Add first vertex again to close the loop
+        worldPositions.push(firstX, firstY, firstZ);
+
+        geometry.setPositions(worldPositions);
+
+        const material = new LineMaterial({
+          color: object.material.color,
+          linewidth: 1,
+          resolution: new THREE.Vector2(window.innerWidth, window.innerHeight),
+        });
+
+        materialRef.current.push(material);
+
+        const line = new Line2(geometry, material);
+        line.computeLineDistances();
+        line.position.set(0, 0, 0);
+        line.rotation.set(0, 0, 0);
+        line.scale.set(1, 1, 1);
+        line.name = object.name;
+
+        const parent = object.parent;
+        parent.remove(object);
+        parent.add(line);
+      }
     });
 
-    edgesRef.current = edges;
-}, [scene]);
+    [...perspectiveObjects, ...otherObjects].forEach((object) => {
+      scene.remove(object);
+    });
+  }, [scene]);
 
-useFrame(() => {
-    if (edgesRef.current.length > 0) {
-        // Animate the width of the edges
-        edgesRef.current.forEach(edge => {
-            edge.material.linewidth = Math.abs(Math.sin(Date.now() * 0.001)) * 5;
-            edge.material.needsUpdate = true;
-        });
-    }
-});
-
-  /*
-    useEffect(() => {
-        // Find all objects with LineGeometry
-        const lines = [];
-        scene.traverse((child) => {
-            if (child.isLine) {
-                const positions = child.geometry.attributes.position.array;
-                const lineGeometry = new LineGeometry();
-                lineGeometry.setPositions(positions);
-
-                const lineMaterial = new LineMaterial({
-                    color: child.material.color,
-                    linewidth: 1, // default width
-                });
-
-                const line = new Line2(lineGeometry, lineMaterial);
-                line.position.copy(child.position);
-                line.rotation.copy(child.rotation);
-                line.scale.copy(child.scale);
-
-                lines.push(line);
-                scene.add(line);
-                scene.remove(child);
-            }
-        });
-        linesRef.current = lines;
-    }, [scene]);
-
-    useFrame(() => {
-        if (linesRef.current.length > 0) {
-            // Animate the width of the lines
-            linesRef.current.forEach(line => {
-                line.material.linewidth = Math.abs(Math.sin(Date.now() * 0.001)) * 5;
-                line.material.needsUpdate = true;
-            });
-        }
-    }); 
-    */
   return <primitive object={scene} />;
 };
 
 const LinesOrPlanes = () => {
-  const modelPath = process.env.PUBLIC_URL + "/chat_perspective.glb";
+  const modelPath = process.env.PUBLIC_URL + "/cat _with_lines.glb";
+
+  const MAX_DISTANCE = 5; // Maximum distance to consider
+  const MIN_LINE_WIDTH = 0.2;
+  const MAX_LINE_WIDTH = 3;
+  const THICKNESS_TARGET = new THREE.Vector3(-3.4, 2.6, 3); // For line thickness calculation
+  const ORBIT_TARGET = new THREE.Vector3(0, 0, 0); // For camera orbit center
+  const MIN_BLOOM = 0.2;
+  const MAX_BLOOM = 2;
+
+  const materialRef = useRef([]);
+  const [bloomIntensity, setBloomIntensity] = useState(MIN_BLOOM);
 
   return (
     <Canvas>
       <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 5]} intensity={1} />
-      <Model url={modelPath} />
-      <OrbitControls />
+      <Model url={modelPath} materialRef={materialRef} />
+      <OrbitControls target={ORBIT_TARGET} />
+      <LineThicknessController
+        materialRef={materialRef}
+        maxDistance={MAX_DISTANCE}
+        minLineWidth={MIN_LINE_WIDTH}
+        maxLineWidth={MAX_LINE_WIDTH}
+        target={THICKNESS_TARGET}
+        minBloom={MIN_BLOOM}
+        maxBloom={MAX_BLOOM}
+        setBloomIntensity={setBloomIntensity}
+      />
+
+      <EffectComposer>
+        <Bloom
+          luminanceThreshold={0}
+          luminanceSmoothing={0.3}
+          height={500}
+          intensity={bloomIntensity}
+        />
+      </EffectComposer>
     </Canvas>
   );
 };
