@@ -14,13 +14,23 @@ import LinesOrPLanes from "./WIP/lines_or_planes";
 import AudioTest from "./bits/audio_test";
 import Menu from "./Menu";
 import "./index.css";
+import BackButton from "./backButton";
 
+// Updated index.js
 const App = () => {
   const [menuVisible, setMenuVisible] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleRouteChange = () => setMenuVisible(false);
+    // Check if we're on the root path
+    const isRoot = window.location.hash === '#/' || window.location.hash === '';
+    setMenuVisible(isRoot);
+
+    const handleRouteChange = () => {
+      const isRoot = window.location.hash === '#/' || window.location.hash === '';
+      setMenuVisible(isRoot);
+    };
+    
     window.addEventListener('popstate', handleRouteChange);
     return () => window.removeEventListener('popstate', handleRouteChange);
   }, []);
@@ -30,9 +40,18 @@ const App = () => {
     navigate(path);
   };
 
+  const handleBack = () => {
+    setMenuVisible(true);
+    navigate('/');
+  };
+
   return (
     <>
-      {menuVisible && <Menu handleButtonClick={handleButtonClick} />}
+      {menuVisible ? (
+        <Menu handleButtonClick={handleButtonClick} />
+      ) : (
+        <BackButton onClick={handleBack} />
+      )}
       <Routes>
         <Route path="/mixamo-outline" element={<MixamoOutline />} />
         <Route path="/scan" element={<Scan />} />

@@ -1,35 +1,33 @@
-import React, { useState } from 'react';
-import './Menu.css'; // Create a CSS file for styling
-
+// Menu.jsx
 const Menu = ({ handleButtonClick }) => {
-  const [isHovered, setIsHovered] = useState(false);
+  const menuItems = [
+    { path: '/mixamo-outline', label: 'Mixamo Outline' },
+    { path: '/scan', label: 'Scan' },
+    { path: '/lines-or-planes', label: 'Lines or Planes' },
+    { path: '/dynamic-outline', label: 'Dynamic Outline' },
+    { path: '/audio-test', label: 'Audio Test' },
+    { path: '/catch-the-leopard', label: 'Catch the Leopard' },
+    { path: '/drag-test', label: 'Drag Test' },
+    { path: '/anim-state', label: 'Animation State' }
+  ];
 
   return (
-    <div
-      className={`menu ${isHovered ? 'expanded' : 'collapsed'}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {isHovered ? (
-        <ul>
-          <li><h2> Full interaction Prototypes </h2></li>
-          <li><button onClick={() => handleButtonClick('/mixamo-outline')}>Mixamo animation with Outline</button></li>
-          <li><button onClick={() => handleButtonClick('/scan')}>Scan</button></li>
-          <li><h2> WIP </h2></li>
-          <li><button onClick={() => handleButtonClick('/lines-or-planes')}>Lines or Planes</button></li>
-          <li><button onClick={() => handleButtonClick('/dynamic-outline')}>Dynamic Outline</button></li>
-          <li><h2> Steps, small bits </h2></li>
-          <li><button onClick={() => handleButtonClick('/audio-test')}>Audio Test</button></li>
-          <li><button onClick={() => handleButtonClick('/catch-the-leopard')}>Move model on close to view center</button></li>
-          <li><button onClick={() => handleButtonClick('/drag-test')}>Large Wheel Drag Test</button></li>
-          <li><button onClick={() => handleButtonClick('/anim-state')}>Anim State</button></li>
-          <li><button onClick={() => handleButtonClick('/position-lock')}>Position Lock</button></li>
-          <li><button onClick={() => handleButtonClick('/anim-once-position')}>Anim Once Position</button></li>
-          <li><button onClick={() => handleButtonClick('/wheel-app')}>Wheel App</button></li>
-        </ul>
-      ) : (
-        <button className="menu-button">Menu</button>
-      )}
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+      gap: '20px',
+      padding: '40px',
+      maxWidth: '1200px',
+      margin: '0 auto'
+    }}>
+      {menuItems.map((item) => (
+        <button 
+          key={item.path}
+          onClick={() => handleButtonClick(item.path)}
+        >
+          {item.label}
+        </button>
+      ))}
     </div>
   );
 };

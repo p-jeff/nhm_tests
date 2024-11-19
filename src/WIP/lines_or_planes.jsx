@@ -1,12 +1,11 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Line2 } from "three/examples/jsm/lines/Line2";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import * as THREE from "three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { useControls } from "leva"; 
 import LineThicknessController from "./lines_planes/LineThicknessController";
 
 const Model = ({ url, materialRef }) => {
