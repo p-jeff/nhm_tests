@@ -7,6 +7,58 @@ import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import * as THREE from "three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import LineThicknessController from "./lines_planes/LineThicknessController";
+import { XR, createXRStore } from "@react-three/xr";
+import { Suspense } from "react";
+
+const store = createXRStore();
+
+const Overlay = ({ isVisible, setIsVisible }) => {
+  const handleAR = () => {
+    setIsVisible(false);
+    store.enterAR();
+  };
+
+  const handleVR = () => {
+    setIsVisible(false);
+    store.enterVR();
+  };
+
+  const handleScreen = () => {
+    setIsVisible(false);
+  };
+
+  return isVisible ? (
+    <div
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        color: "white",
+        flexDirection: "column",
+      }}
+    >
+      <h2>Lines or Planes Prototype</h2>
+      <p>
+        Lines will change thickness based on camera distance from target point.
+        <br />
+        <br />
+        In AR/VR, the model will be positioned at origin.
+        <br />
+        <br />
+        In browser, use Orbit Controls to move the camera.
+      </p>
+      <button onClick={handleAR}>Enter AR</button>
+      <button onClick={handleVR}>Enter VR</button>
+      <button onClick={handleScreen}>Stay in Browser</button>
+    </div>
+  ) : null;
+};
 
 const Model = ({ url, materialRef }) => {
   const { scene } = useGLTF(url);
@@ -102,32 +154,35 @@ const LinesOrPlanes = () => {
   const materialRef = useRef([]);
   const [bloomIntensity, setBloomIntensity] = useState(MIN_BLOOM);
 
-  return (
-    <Canvas>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 10, 5]} intensity={1} />
-      <Model url={modelPath} materialRef={materialRef} />
-      <OrbitControls target={ORBIT_TARGET} />
-      <LineThicknessController
-        materialRef={materialRef}
-        maxDistance={MAX_DISTANCE}
-        minLineWidth={MIN_LINE_WIDTH}
-        maxLineWidth={MAX_LINE_WIDTH}
-        target={THICKNESS_TARGET}
-        minBloom={MIN_BLOOM}
-        maxBloom={MAX_BLOOM}
-        setBloomIntensity={setBloomIntensity}
-      />
+  const [isOverlayVisible, setIsOverlayVisible] = useState(true);
 
-      <EffectComposer>
-        <Bloom
-          luminanceThreshold={0}
-          luminanceSmoothing={0.3}
-          height={500}
-          intensity={bloomIntensity}
-        />
-      </EffectComposer>
-    </Canvas>
+  return (
+    <>
+      <Canvas>
+        <XR store={store}>
+          <Suspense fallback={null}>
+            <ambientLight intensity={0.5} />
+            <directionalLight position={[10, 10, 5]} intensity={1} />
+            <Model url={modelPath} materialRef={materialRef} />
+            <OrbitControls target={ORBIT_TARGET} />
+            <LineThicknessController
+              materialRef={materialRef}
+              maxDistance={MAX_DISTANCE}
+              minLineWidth={MIN_LINE_WIDTH}
+              maxLineWidth={MAX_LINE_WIDTH}
+              target={THICKNESS_TARGET}
+              minBloom={MIN_BLOOM}
+              maxBloom={MAX_BLOOM}
+              setBloomIntensity={setBloomIntensity}
+            />
+          </Suspense>
+        </XR>
+      </Canvas>
+      <Overlay
+        isVisible={isOverlayVisible}
+        setIsVisible={setIsOverlayVisible}
+      />
+    </>
   );
 };
 

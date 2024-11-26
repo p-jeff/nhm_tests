@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom/client";
-import { HashRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import {
+  HashRouter as Router,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
 import CatchTheLeopard from "./bits/CatchTheLeopard";
 import WheelApp from "./bits/WheelApp";
 import DragTest from "./bits/DragTest";
@@ -9,12 +14,14 @@ import PositionLock from "./bits/positionLock";
 import AnimOncePosition from "./bits/animeOncePosition";
 import MixamoOutline from "./prototypes/mixamo_outlines";
 import DynamicOutline from "./WIP/dynamic_outlines";
-import Scan from "./prototypes/scan/scan";
+import Scan_old from "./prototypes/scan_old/scan_old";
 import LinesOrPLanes from "./WIP/lines_or_planes";
 import AudioTest from "./bits/audio_test";
 import Menu from "./Menu";
 import "./index.css";
 import BackButton from "./backButton";
+import Scan from "./prototypes/scan/scan";
+
 
 // Updated index.js
 const App = () => {
@@ -23,16 +30,17 @@ const App = () => {
 
   useEffect(() => {
     // Check if we're on the root path
-    const isRoot = window.location.hash === '#/' || window.location.hash === '';
+    const isRoot = window.location.hash === "#/" || window.location.hash === "";
     setMenuVisible(isRoot);
 
     const handleRouteChange = () => {
-      const isRoot = window.location.hash === '#/' || window.location.hash === '';
+      const isRoot =
+        window.location.hash === "#/" || window.location.hash === "";
       setMenuVisible(isRoot);
     };
-    
-    window.addEventListener('popstate', handleRouteChange);
-    return () => window.removeEventListener('popstate', handleRouteChange);
+
+    window.addEventListener("popstate", handleRouteChange);
+    return () => window.removeEventListener("popstate", handleRouteChange);
   }, []);
 
   const handleButtonClick = (path) => {
@@ -42,7 +50,7 @@ const App = () => {
 
   const handleBack = () => {
     setMenuVisible(true);
-    navigate('/');
+    navigate("/");
   };
 
   return (
@@ -64,6 +72,7 @@ const App = () => {
         <Route path="/position-lock" element={<PositionLock />} />
         <Route path="/anim-once-position" element={<AnimOncePosition />} />
         <Route path="/wheel-app" element={<WheelApp />} />
+        <Route path="/scan-old" element={<Scan_old />} />
       </Routes>
     </>
   );

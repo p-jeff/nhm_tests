@@ -8,7 +8,8 @@ const Menu = ({ handleButtonClick }) => {
     { path: '/audio-test', label: 'Audio Test' },
     { path: '/catch-the-leopard', label: 'Catch the Leopard' },
     { path: '/drag-test', label: 'Drag Test' },
-    { path: '/anim-state', label: 'Animation State' }
+    { path: '/anim-state', label: 'Animation State' },
+    {path: '/scan_old', label: 'Scan Old (depreciated)' },
   ];
 
   return (
