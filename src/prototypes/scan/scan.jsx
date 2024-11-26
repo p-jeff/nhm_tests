@@ -7,6 +7,7 @@ import LoadingOverlay from "./LoadingOverlay";
 import ImageGrid from "./ImageGrid";
 import ScanControls from "./ScanControls";
 import * as THREE from "three";
+import { OrbitControls } from "@react-three/drei";
 
 const xrStore = createXRStore();
 
@@ -113,7 +114,7 @@ function XRContent({ groupRef }) {
       ) : (
         <ScanControls groupRef={groupRef} />
       )}
-      <Hud></Hud>
+      <Hud/>
     </group>
   );
 }
@@ -138,8 +139,9 @@ export default function Scan() {
             <Canvas>
               <XR store={xrStore}>
                 {isLoaded && <XRContent groupRef={groupRef} />}
-                <XROrigin position={[0, 0, 5]} />
+                <XROrigin position={[0, 0, 4]} />
               </XR>
+
             </Canvas>
           </Suspense>
         </>
