@@ -1,4 +1,4 @@
-export default function LoadingOverlay({ onClick, xrStore, setIsLoaded }) {
+export default function LoadingOverlay({ onClick, xrStore, setIsLoaded, setVersion }) {
   return (
     <div
       style={{
@@ -29,10 +29,21 @@ export default function LoadingOverlay({ onClick, xrStore, setIsLoaded }) {
         onClick={() => {
           setIsLoaded(true);
           xrStore.enterVR();
+          setVersion('old')
         }}
         style={{ padding: "10px 20px", fontSize: "16px", marginLeft: "10px" }}
       >
-        Prototype in VR
+     Prototype in VR, Scan Controls
+      </button>
+      <button
+        onClick={() => {
+          setIsLoaded(true);
+          xrStore.enterVR();
+          setVersion('new')
+        }}
+        style={{ padding: "10px 20px", fontSize: "16px", marginLeft: "10px" }}
+      >
+        Prototype in VR, Zoom
       </button>
 
     </div>
