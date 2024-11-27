@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import { Line2 } from "three/examples/jsm/lines/Line2";
@@ -9,59 +9,13 @@ import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import LineThicknessController from "./lines_planes/LineThicknessController";
 import { XR, createXRStore } from "@react-three/xr";
 import { Suspense } from "react";
+import Overlay from "./lines_planes/Overlay";
 
 const store = createXRStore();
 
-const Overlay = ({ isVisible, setIsVisible }) => {
-  const handleAR = () => {
-    setIsVisible(false);
-    store.enterAR();
-  };
-
-  const handleVR = () => {
-    setIsVisible(false);
-    store.enterVR();
-  };
-
-  const handleScreen = () => {
-    setIsVisible(false);
-  };
-
-  return isVisible ? (
-    <div
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        color: "white",
-        flexDirection: "column",
-      }}
-    >
-      <h2>Lines or Planes Prototype</h2>
-      <p>
-        Lines will change thickness based on camera distance from target point.
-        <br />
-        <br />
-        In AR/VR, the model will be positioned at origin.
-        <br />
-        <br />
-        In browser, use Orbit Controls to move the camera.
-      </p>
-      <button onClick={handleAR}>Enter AR</button>
-      <button onClick={handleVR}>Enter VR</button>
-      <button onClick={handleScreen}>Stay in Browser</button>
-    </div>
-  ) : null;
-};
-
-const Model = ({ url, materialRef }) => {
+const Model = ({ url, materialRef, lineRefs }) => {
   const { scene } = useGLTF(url);
+
 
   useEffect(() => {
     const planarObjects = [];
@@ -80,17 +34,14 @@ const Model = ({ url, materialRef }) => {
       }
     });
 
-    // Convert and store materials for animation
+    // Convert planar objects to Line2 with LineMaterial
     planarObjects.forEach((object) => {
       if (object.geometry) {
         const geometry = new LineGeometry();
-
-        // Get world positions to preserve positioning
         const worldPositions = [];
         const positionAttribute = object.geometry.attributes.position;
         const vertex = new THREE.Vector3();
 
-        // Store first vertex coordinates to close the loop
         let firstX, firstY, firstZ;
 
         for (let i = 0; i < positionAttribute.count; i++) {
@@ -98,7 +49,6 @@ const Model = ({ url, materialRef }) => {
           vertex.applyMatrix4(object.matrixWorld);
           worldPositions.push(vertex.x, vertex.y, vertex.z);
 
-          // Save first vertex coordinates
           if (i === 0) {
             firstX = vertex.x;
             firstY = vertex.y;
@@ -106,7 +56,7 @@ const Model = ({ url, materialRef }) => {
           }
         }
 
-        // Add first vertex again to close the loop
+        // Close the loop
         worldPositions.push(firstX, firstY, firstZ);
 
         geometry.setPositions(worldPositions);
@@ -126,6 +76,8 @@ const Model = ({ url, materialRef }) => {
         line.scale.set(1, 1, 1);
         line.name = object.name;
 
+        lineRefs.current.push(line);
+
         const parent = object.parent;
         parent.remove(object);
         parent.add(line);
@@ -135,9 +87,12 @@ const Model = ({ url, materialRef }) => {
     [...perspectiveObjects, ...otherObjects].forEach((object) => {
       scene.remove(object);
     });
-  }, [scene]);
+  }, [scene, materialRef]);
 
-  return <primitive object={scene} />;
+  // Add wobble animation using useFrame
+
+
+  return <primitive object={scene} scale={0.7} />;
 };
 
 const LinesOrPlanes = () => {
@@ -146,14 +101,14 @@ const LinesOrPlanes = () => {
   const MAX_DISTANCE = 5; // Maximum distance to consider
   const MIN_LINE_WIDTH = 0.2;
   const MAX_LINE_WIDTH = 3;
-  const THICKNESS_TARGET = new THREE.Vector3(-3.4, 2.6, 3); // For line thickness calculation
+  const THICKNESS_TARGET = new THREE.Vector3(-3.4/2, 2.6/2, 3/2); // For line thickness calculation
   const ORBIT_TARGET = new THREE.Vector3(0, 0, 0); // For camera orbit center
   const MIN_BLOOM = 0.2;
   const MAX_BLOOM = 2;
 
   const materialRef = useRef([]);
   const [bloomIntensity, setBloomIntensity] = useState(MIN_BLOOM);
-
+  const lineRefs = useRef([]);
   const [isOverlayVisible, setIsOverlayVisible] = useState(true);
 
   return (
@@ -163,17 +118,18 @@ const LinesOrPlanes = () => {
           <Suspense fallback={null}>
             <ambientLight intensity={0.5} />
             <directionalLight position={[10, 10, 5]} intensity={1} />
-            <Model url={modelPath} materialRef={materialRef} />
+            <Model url={modelPath} materialRef={materialRef} lineRefs={lineRefs}/>
             <OrbitControls target={ORBIT_TARGET} />
             <LineThicknessController
               materialRef={materialRef}
-              maxDistance={MAX_DISTANCE}
-              minLineWidth={MIN_LINE_WIDTH}
-              maxLineWidth={MAX_LINE_WIDTH}
+              maxDistance={3}
+              minLineWidth={0.1}
+              maxLineWidth={2}
               target={THICKNESS_TARGET}
-              minBloom={MIN_BLOOM}
-              maxBloom={MAX_BLOOM}
+              minBloom={0}
+              maxBloom={2}
               setBloomIntensity={setBloomIntensity}
+              lineRefs={lineRefs}
             />
           </Suspense>
         </XR>
@@ -181,6 +137,7 @@ const LinesOrPlanes = () => {
       <Overlay
         isVisible={isOverlayVisible}
         setIsVisible={setIsOverlayVisible}
+        store={store}
       />
     </>
   );
