@@ -1,15 +1,11 @@
 import { useControls, folder } from "leva";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { useEffect } from "react";
 
 const LineThicknessController = ({
   materialRef,
-  maxDistance,
-  minLineWidth,
-  maxLineWidth,
   target,
-  minBloom,
-  maxBloom,
   setBloomIntensity,
   lineRefs,
 }) => {
@@ -32,7 +28,7 @@ const LineThicknessController = ({
         label: "Enable Line Effects",
       },
       maxDist: {
-        value: maxDistance,
+        value: 3,
         min: 1,
         max: 10,
         step: 0.1,
@@ -60,14 +56,14 @@ const LineThicknessController = ({
         label: "Enable Bloom",
       },
       minBloomValue: {
-        value: minBloom,
+        value: 0,
         min: 0,
         max: 1,
         step: 0.1,
         label: "Min Bloom",
       },
       maxBloomValue: {
-        value: maxBloom,
+        value: 2,
         min: 1,
         max: 5,
         step: 0.1,
@@ -96,6 +92,7 @@ const LineThicknessController = ({
       },
     }),
   });
+
 
   useFrame((state) => {
     if (!materialRef.current.length) return;

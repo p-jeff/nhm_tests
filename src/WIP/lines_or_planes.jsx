@@ -10,12 +10,13 @@ import LineThicknessController from "./lines_planes/LineThicknessController";
 import { XR, createXRStore } from "@react-three/xr";
 import { Suspense } from "react";
 import Overlay from "./lines_planes/Overlay";
+import Curves from "./lines_planes/Curves";
 
 const store = createXRStore();
 
 const Model = ({ url, materialRef, lineRefs }) => {
   const { scene } = useGLTF(url);
-
+  const [objects, setObjects] = useState([]);
 
   useEffect(() => {
     const planarObjects = [];
@@ -34,13 +35,34 @@ const Model = ({ url, materialRef, lineRefs }) => {
       }
     });
 
+    [...perspectiveObjects, ...otherObjects, ...planarObjects].forEach(
+      (object) => {
+        scene.remove(object);
+      }
+    );
+
+    setObjects(planarObjects);
+  }, [scene, materialRef, lineRefs]);
+
+  return (
+    <group>
+      <primitive object={scene} />
+      <Curves objects={objects} scene={scene} />
+    </group>
+  );
+};
+
+
+const Planes = ({ objects, scene, materialRef, lineRefs }) => {
+  useEffect(() => {
     // Convert planar objects to Line2 with LineMaterial
-    planarObjects.forEach((object) => {
+    objects.forEach((object) => {
       if (object.geometry) {
         const geometry = new LineGeometry();
         const worldPositions = [];
         const positionAttribute = object.geometry.attributes.position;
         const vertex = new THREE.Vector3();
+        const lineVertices = [];
 
         let firstX, firstY, firstZ;
 
@@ -48,6 +70,8 @@ const Model = ({ url, materialRef, lineRefs }) => {
           vertex.fromBufferAttribute(positionAttribute, i);
           vertex.applyMatrix4(object.matrixWorld);
           worldPositions.push(vertex.x, vertex.y, vertex.z);
+
+          lineVertices.push(new THREE.Vector3(vertex.x, vertex.y, vertex.z));
 
           if (i === 0) {
             firstX = vertex.x;
@@ -77,37 +101,19 @@ const Model = ({ url, materialRef, lineRefs }) => {
         line.name = object.name;
 
         lineRefs.current.push(line);
-
-        const parent = object.parent;
-        parent.remove(object);
-        parent.add(line);
+        scene.add(line);
       }
     });
-
-    [...perspectiveObjects, ...otherObjects].forEach((object) => {
-      scene.remove(object);
-    });
-  }, [scene, materialRef]);
-
-  // Add wobble animation using useFrame
-
-
-  return <primitive object={scene} scale={0.7} />;
+  }, [scene, objects]);
 };
 
 const LinesOrPlanes = () => {
   const modelPath = process.env.PUBLIC_URL + "/cat _with_lines.glb";
-
-  const MAX_DISTANCE = 5; // Maximum distance to consider
-  const MIN_LINE_WIDTH = 0.2;
-  const MAX_LINE_WIDTH = 3;
-  const THICKNESS_TARGET = new THREE.Vector3(-3.4/2, 2.6/2, 3/2); // For line thickness calculation
+  const THICKNESS_TARGET = new THREE.Vector3(-3.4 / 2, 2.6 / 2, 3 / 2); // For line thickness calculation
   const ORBIT_TARGET = new THREE.Vector3(0, 0, 0); // For camera orbit center
-  const MIN_BLOOM = 0.2;
-  const MAX_BLOOM = 2;
 
   const materialRef = useRef([]);
-  const [bloomIntensity, setBloomIntensity] = useState(MIN_BLOOM);
+  const [bloomIntensity, setBloomIntensity] = useState(0);
   const lineRefs = useRef([]);
   const [isOverlayVisible, setIsOverlayVisible] = useState(true);
 
@@ -118,16 +124,15 @@ const LinesOrPlanes = () => {
           <Suspense fallback={null}>
             <ambientLight intensity={0.5} />
             <directionalLight position={[10, 10, 5]} intensity={1} />
-            <Model url={modelPath} materialRef={materialRef} lineRefs={lineRefs}/>
+            <Model
+              url={modelPath}
+              materialRef={materialRef}
+              lineRefs={lineRefs}
+            />
             <OrbitControls target={ORBIT_TARGET} />
             <LineThicknessController
               materialRef={materialRef}
-              maxDistance={3}
-              minLineWidth={0.1}
-              maxLineWidth={2}
               target={THICKNESS_TARGET}
-              minBloom={0}
-              maxBloom={2}
               setBloomIntensity={setBloomIntensity}
               lineRefs={lineRefs}
             />
@@ -138,9 +143,8 @@ const LinesOrPlanes = () => {
         isVisible={isOverlayVisible}
         setIsVisible={setIsOverlayVisible}
         store={store}
-      />
+      />{" "}
     </>
   );
 };
-
 export default LinesOrPlanes;

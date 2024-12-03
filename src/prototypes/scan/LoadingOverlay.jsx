@@ -17,7 +17,7 @@ export default function LoadingOverlay({ onClick, xrStore, setIsLoaded, setVersi
       <h2 style={{ color: "white", margin: "30px" }}>
         First Binocular Prototype. <br /> Uses positional audio - works better
         with headphones. <br /> Pan by moving the mouse close to the edge.
-        <br /> In VR pan by looking around.
+        <br /> Scan Controls: Pan by looking around <br /> Zoom: Use the A- Button on the controller to zoom
       </h2>
       <button
         onClick={onClick}

@@ -63,7 +63,7 @@ const App = () => {
       <Routes>
         <Route path="/mixamo-outline" element={<MixamoOutline />} />
         <Route path="/scan" element={<Scan />} />
-        <Route path="/lines-or-planes" element={<LinesOrPLanes />} />
+        <Route path="/leopard-lines" element={<LinesOrPLanes />} />
         <Route path="/dynamic-outline" element={<DynamicOutline />} />
         <Route path="/audio-test" element={<AudioTest />} />
         <Route path="/catch-the-leopard" element={<CatchTheLeopard />} />

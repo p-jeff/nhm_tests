@@ -3,7 +3,7 @@ const Menu = ({ handleButtonClick }) => {
   const menuItems = [
     { path: '/mixamo-outline', label: 'Mixamo Outline' },
     { path: '/scan', label: 'Scan' },
-    { path: '/lines-or-planes', label: 'Lines or Planes' },
+    { path: '/leopard-lines', label: 'Snow Leopard Lines' },
     { path: '/dynamic-outline', label: 'Dynamic Outline' },
     { path: '/audio-test', label: 'Audio Test' },
     { path: '/catch-the-leopard', label: 'Catch the Leopard' },
