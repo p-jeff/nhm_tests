@@ -33,7 +33,7 @@ const ParticlesController = ({
         label: "Size Variable",
       },
       speed: {
-        value: 5,
+        value: 1,
         min: 1,
         max: 10,
         step: 1,

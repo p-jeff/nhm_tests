@@ -86,7 +86,7 @@ const Curves = ({
         });
 
         const curveObject = new THREE.Line(curveGeometry, curveMaterial);
-        scene.add(curveObject);
+        //scene.add(curveObject);
 
         // Create white dot particles along the curve with varying sizes
         const particleCount = 200; // Increase the number of particles for smoother animation
