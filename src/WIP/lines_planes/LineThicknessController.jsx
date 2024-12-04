@@ -1,7 +1,6 @@
 import { useControls, folder } from "leva";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { useEffect } from "react";
 
 const LineThicknessController = ({
   materialRef,
