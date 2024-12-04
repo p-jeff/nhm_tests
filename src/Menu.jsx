@@ -15,14 +15,14 @@ const Menu = ({ handleButtonClick }) => {
   const oldVersions = [
     { path: "/scan_old", label: "Scan Prototype 1 (depreciated)" },
     { path: "/mixamo-outline", label: "Outline Interaction Prototype 1" },
-    { path: "/catch-the-leopard", label: "Catch the Leopard" },
-    { path: "/drag-test", label: "Drag Test" },
   ];
 
   const bits = [
     { path: "/dynamic-outline", label: "Dynamic Outline" },
     { path: "/audio-test", label: "Audio Test" },
     { path: "/anim-state", label: "Animation State" },
+    { path: "/drag-test", label: "Drag Test" },
+    { path: "/catch-the-leopard", label: "Catch the Leopard" },
   ];
 
   return (
