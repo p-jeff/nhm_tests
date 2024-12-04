@@ -1,6 +1,7 @@
 // BackButton.jsx
 const BackButton = ({ onClick }) => (
   <button 
+  className="button-54 button-large"
     onClick={onClick}
     style={{
       position: 'fixed',

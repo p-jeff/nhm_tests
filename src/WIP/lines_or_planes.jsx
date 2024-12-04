@@ -1,14 +1,9 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
-import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
-import { Line2 } from "three/examples/jsm/lines/Line2";
-import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import * as THREE from "three";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import LineThicknessController from "./lines_planes/LineThicknessController";
 import ParticlesController from "./lines_planes/ParticlesController";
-import { XR, XROrigin, createXRStore } from "@react-three/xr";
+import { XR, createXRStore } from "@react-three/xr";
 import Overlay from "./lines_planes/Overlay";
 import Curves from "./lines_planes/Curves";
 import { Howl } from "howler";

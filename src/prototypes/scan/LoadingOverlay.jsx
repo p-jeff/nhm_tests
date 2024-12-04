@@ -19,13 +19,14 @@ export default function LoadingOverlay({ onClick, xrStore, setIsLoaded, setVersi
         with headphones. <br /> Pan by moving the mouse close to the edge.
         <br /> Scan Controls: Pan by looking around <br /> Zoom: Use the A- Button on the controller to zoom
       </h2>
-      <button
+      <button className="button-54"
         onClick={onClick}
         style={{ padding: "10px 20px", fontSize: "16px" }}
       >
         Prototype in Browser
       </button>
       <button
+       className="button-54"
         onClick={() => {
           setIsLoaded(true);
           xrStore.enterVR();
@@ -36,6 +37,7 @@ export default function LoadingOverlay({ onClick, xrStore, setIsLoaded, setVersi
      Prototype in VR, Scan Controls
       </button>
       <button
+      className="button-54"
         onClick={() => {
           setIsLoaded(true);
           xrStore.enterVR();

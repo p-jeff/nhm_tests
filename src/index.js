@@ -6,6 +6,7 @@ import {
   Routes,
   useNavigate,
 } from "react-router-dom";
+
 import CatchTheLeopard from "./bits/CatchTheLeopard";
 import WheelApp from "./bits/WheelApp";
 import DragTest from "./bits/DragTest";
