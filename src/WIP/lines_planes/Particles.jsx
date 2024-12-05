@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-const Curves = ({
+const Particles = ({
   objects,
   scene,
   offset,
@@ -12,6 +12,7 @@ const Curves = ({
 }) => {
   const [curves, setCurves] = useState([]);
   const particlesArrayRef = useRef([]);
+  const groupRef = useRef();
 
   class CustomCurve extends THREE.Curve {
     constructor(points) {
@@ -195,7 +196,7 @@ const Curves = ({
       particles.geometry.attributes.position.needsUpdate = true;
     });
   });
-  return null;
+  return ;
 };
 
-export default Curves;
+export default Particles;

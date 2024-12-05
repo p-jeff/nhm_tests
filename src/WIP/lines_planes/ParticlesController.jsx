@@ -10,7 +10,7 @@ const ParticlesController = ({
   sound,
 }) => {
   const { offset, sizeCenter, sizeVariable, speed } = useControls({
-    "Curve Settings": folder({
+    "Particles Settings": folder({
       offset: {
         value: 0.03,
         min: 0,
@@ -39,7 +39,7 @@ const ParticlesController = ({
         step: 1,
         label: "Speed",
       },
-    }),
+    }, { collapsed: true }),  
   });
 
   const [hasEnteredCloseArea, setHasEnteredCloseArea] = useState(false); // State to track if close area is entered

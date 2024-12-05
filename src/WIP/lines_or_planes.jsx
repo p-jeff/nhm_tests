@@ -5,12 +5,25 @@ import * as THREE from "three";
 import ParticlesController from "./lines_planes/ParticlesController";
 import { XR, createXRStore } from "@react-three/xr";
 import Overlay from "./lines_planes/Overlay";
-import Curves from "./lines_planes/Curves";
+import Particles from "./lines_planes/Particles";
+import Lines from "./lines_planes/Lines";
+import Planes from "./lines_planes/Planes";
 import { Howl } from "howler";
+import { useControls } from "leva";
+import LineThicknessController from "./lines_planes/LineThicknessController";
+import { Leva } from "leva";
 
 const store = createXRStore();
 
-const Model = ({ url, materialRef, lineRefs, curveSettings }) => {
+const Model = ({
+  url,
+  materialRef,
+  lineRefs,
+  curveSettings,
+  showParticles,
+  showLines,
+  showPlanes,
+}) => {
   const { scene } = useGLTF(url);
   const [objects, setObjects] = useState([]);
 
@@ -43,15 +56,32 @@ const Model = ({ url, materialRef, lineRefs, curveSettings }) => {
   return (
     <group>
       <primitive object={scene} scale={0.5} />
-      <Curves
-        objects={objects}
-        scene={scene}
-        offset={curveSettings.offset}
-        sizeCenter={curveSettings.sizeCenter}
-        sizeVariable={curveSettings.sizeVariable}
-        speed={curveSettings.speed}
-      />
-      {/* <Planes objects={objects} scene={scene} materialRef={materialRef} lineRefs={lineRefs} /> */}
+      {showParticles && (
+        <Particles
+          objects={objects}
+          scene={scene}
+          offset={curveSettings.offset}
+          sizeCenter={curveSettings.sizeCenter}
+          sizeVariable={curveSettings.sizeVariable}
+          speed={curveSettings.speed}
+        />
+      )}
+      {showPlanes && (
+        <Planes
+          objects={objects}
+          scene={scene}
+          materialRef={materialRef}
+          lineRefs={lineRefs}
+        />
+      )}
+      {showLines && (
+        <Lines
+          objects={objects}
+          scene={scene}
+          materialRef={materialRef}
+          lineRefs={lineRefs}
+        />
+      )}
     </group>
   );
 };
@@ -65,34 +95,41 @@ const LinesOrPlanes = () => {
   ); // For line thickness calculation
   const ORBIT_TARGET = new THREE.Vector3(0, 0, 0); // For camera orbit center
 
-  const materialRef = useRef([]);
-  const [bloomIntensity, setBloomIntensity] = useState(0);
-  const lineRefs = useRef([]);
-  const [isOverlayVisible, setIsOverlayVisible] = useState(true);
-  const [sound, setSound] = useState(null);
+  const { showLines, showPlanes, showParticles } = useControls({
+    showLines: false,
+    showPlanes: false,
+    showParticles: false,
+  });
 
-  const [curveSettings, setCurveSettings] = useState({
+    const [curveSettings, setCurveSettings] = useState({
     offset: 0.01,
     sizeCenter: 0.075,
     sizeVariable: 0.025,
     speed: 0.0001,
   });
 
+  const materialRef = useRef([]);
+  const [bloomIntensity, setBloomIntensity] = useState(0);
+  const lineRefs = useRef([]);
+  const [isOverlayVisible, setIsOverlayVisible] = useState(true);
+  const [sound, setSound] = useState(null);
+
   useEffect(() => {
     if (!isOverlayVisible) {
       const howl = new Howl({
         src: [process.env.PUBLIC_URL + "/ding.mp3"],
       });
-    
+
       if (howl) {
         setSound(howl);
-        console.log(howl); 
+        console.log(howl);
       }
     }
   }, [isOverlayVisible]);
 
   return (
     <>
+      <Leva collapsed={true} />
       <Canvas>
         <XR store={store}>
           <ambientLight intensity={0.5} />
@@ -102,18 +139,21 @@ const LinesOrPlanes = () => {
             materialRef={materialRef}
             lineRefs={lineRefs}
             curveSettings={curveSettings}
+            showLines={showLines}
+            showPlanes={showPlanes}
+            showParticles={showParticles}
           />
           <OrbitControls target={ORBIT_TARGET} />
-          {/* <LineThicknessController
-              materialRef={materialRef}
-              target={THICKNESS_TARGET}
-              setBloomIntensity={setBloomIntensity}
-              lineRefs={lineRefs}
-            /> */}
+          <LineThicknessController
+            materialRef={materialRef}
+            target={THICKNESS_TARGET}
+            setBloomIntensity={setBloomIntensity}
+            lineRefs={lineRefs}
+          />
           <ParticlesController
             setCurveSettings={setCurveSettings}
             target={THICKNESS_TARGET}
-            sound={sound} 
+            sound={sound}
           />
         </XR>
       </Canvas>

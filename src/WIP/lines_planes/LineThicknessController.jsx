@@ -47,7 +47,7 @@ const LineThicknessController = ({
         step: 0.1,
         label: "Max Line Width",
       },
-    }),
+    },{ collapsed: true }),
 
     "Bloom Settings": folder({
       isBloomEnabled: {
@@ -68,7 +68,7 @@ const LineThicknessController = ({
         step: 0.1,
         label: "Max Bloom",
       },
-    }),
+    },{ collapsed: true }),
 
     "Wobble Settings": folder({
       isWobbleEnabled: {
@@ -89,8 +89,8 @@ const LineThicknessController = ({
         step: 0.01,
         label: "Base Wobble Amplitude",
       },
-    }),
-  });
+    },{ collapsed: true }),
+  },{ collapsed: true });
 
 
   useFrame((state) => {
