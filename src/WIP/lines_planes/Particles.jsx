@@ -1,18 +1,19 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import ParticlesController from "./ParticlesController";
 
-const Particles = ({
-  objects,
-  scene,
-  offset,
-  speed,
-  sizeCenter,
-  sizeVariable,
-}) => {
+const Particles = ({ objects, offset, speed, sizeCenter, sizeVariable, proximity }) => {
   const [curves, setCurves] = useState([]);
   const particlesArrayRef = useRef([]);
   const groupRef = useRef();
+
+  const [curveSettings, setCurveSettings] = useState({
+    offset: 0.01,
+    sizeCenter: 0.075,
+    sizeVariable: 0.025,
+    speed: 0.0001,
+  });
 
   class CustomCurve extends THREE.Curve {
     constructor(points) {
@@ -79,16 +80,6 @@ const Particles = ({
         const curve = new CustomCurve(curvePoints);
         generatedCurves.push(curve);
 
-        const curveGeometry = new THREE.BufferGeometry().setFromPoints(
-          curve.getPoints(50)
-        );
-        const curveMaterial = new THREE.LineBasicMaterial({
-          color: object.material.color,
-        });
-
-        const curveObject = new THREE.Line(curveGeometry, curveMaterial);
-        //scene.add(curveObject);
-
         // Create white dot particles along the curve with varying sizes
         const particleCount = 200; // Increase the number of particles for smoother animation
         const particlePositions = new Float32Array(particleCount * 3);
@@ -150,14 +141,16 @@ const Particles = ({
           particlesGeometry,
           particlesMaterial
         );
-        scene.add(particles);
+
+        groupRef.current.add(particles);
+        console.log(groupRef);
         particlesArray.push({ particles, curve });
       }
     });
 
     particlesArrayRef.current = particlesArray;
     setCurves(generatedCurves);
-  }, [scene, objects]);
+  }, [objects]);
 
   const offsets = useRef([]);
 
@@ -196,7 +189,11 @@ const Particles = ({
       particles.geometry.attributes.position.needsUpdate = true;
     });
   });
-  return null;
+  return (
+    <group ref={groupRef} scale={0.5}>
+      <ParticlesController proximity={proximity} setCurveSettings={setCurveSettings}/>
+    </group>
+  );
 };
 
 export default Particles;

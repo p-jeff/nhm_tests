@@ -5,9 +5,8 @@ import { useEffect, useState } from "react";
 
 const ParticlesController = ({
   setCurveSettings,
-  target,
+  proximity,
   maxDist = 3,
-  sound,
 }) => {
   const { offset, sizeCenter, sizeVariable, speed } = useControls({
     "Particles Settings": folder(
@@ -45,20 +44,12 @@ const ParticlesController = ({
     ),
   });
 
-  useFrame((state) => {
-    const camera = state.camera;
-    const distance = camera.position.distanceTo(target);
-    const normalizedDist = Math.min(distance / maxDist, 1);
-
-    // Reverse the normalized distance (1 when close, 0 when far)
-    const proximity = 1 - normalizedDist;
-
+  useFrame(() => {
     const minSize = 0.005;
     const maxSize = 0.1;
     const adjustedSize = THREE.MathUtils.lerp(minSize, maxSize, proximity);
 
     // Add tiny offset animation
-    const time = state.clock.getElapsedTime();
     const animatedOffset = offset;
 
     setCurveSettings({

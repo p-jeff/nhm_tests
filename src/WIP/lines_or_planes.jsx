@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState } from "react";
-import { Canvas, useFrame, useThree} from "@react-three/fiber";
+import React, { useEffect, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import { XR, createXRStore } from "@react-three/xr";
 
@@ -16,7 +16,7 @@ import ParticlesController from "./lines_planes/ParticlesController";
 
 const store = createXRStore();
 
-const Model = ({ url, curveSettings, showParticles, setObjects, objects }) => {
+const Model = ({ url, setObjects }) => {
   const { scene } = useGLTF(url);
 
   useEffect(() => {
@@ -45,26 +45,12 @@ const Model = ({ url, curveSettings, showParticles, setObjects, objects }) => {
     setObjects(planarObjects);
   }, [scene]);
 
-  return (
-    <group>
-      <primitive object={scene} scale={0.5} />
-      {showParticles && (
-        <Particles
-          objects={objects}
-          scene={scene}
-          offset={curveSettings.offset}
-          sizeCenter={curveSettings.sizeCenter}
-          sizeVariable={curveSettings.sizeVariable}
-          speed={curveSettings.speed}
-        />
-      )}
-    </group>
-  );
+  return null;
 };
 
-const ProximitySensor = ({ target, maxDist = 10, sound, setProximity}) => {
-  const {camera} = useThree();
-  const [hasEnteredCloseArea, setHasEnteredCloseArea] = useState(false); 
+const ProximitySensor = ({ target, maxDist = 10, sound, setProximity }) => {
+  const { camera } = useThree();
+  const [hasEnteredCloseArea, setHasEnteredCloseArea] = useState(false);
 
   useFrame(() => {
     const distance = camera.position.distanceTo(target);
@@ -73,10 +59,10 @@ const ProximitySensor = ({ target, maxDist = 10, sound, setProximity}) => {
 
     setProximity(proximity);
 
-    if (proximity > 0.90 && !hasEnteredCloseArea) {
+    if (proximity > 0.9 && !hasEnteredCloseArea) {
       setHasEnteredCloseArea(true);
-      sound.play()
-    }    
+      sound.play();
+    }
   });
 };
 
@@ -95,13 +81,6 @@ const LinesOrPlanes = () => {
     showLines: false,
     showPlanes: false,
     showParticles: false,
-  });
-
-  const [curveSettings, setCurveSettings] = useState({
-    offset: 0.01,
-    sizeCenter: 0.075,
-    sizeVariable: 0.025,
-    speed: 0.0001,
   });
 
   const [proximity, setProximity] = useState(0);
@@ -131,27 +110,22 @@ const LinesOrPlanes = () => {
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
 
-          <ProximitySensor target={THICKNESS_TARGET} maxDist={10} sound={sound} setProximity={setProximity}/>
-
-          <Model
-            url={modelPath}
-            curveSettings={curveSettings}
-            showParticles={showParticles}
-            setObjects={setObjects}
-            objects={objects}
+          <ProximitySensor
+            target={THICKNESS_TARGET}
+            maxDist={10}
+            sound={sound}
+            setProximity={setProximity}
           />
+
+          <Model url={modelPath} setObjects={setObjects} />
 
           {showPlanes && <Planes objects={objects} />}
 
-          {showLines && <Lines objects={objects} target={THICKNESS_TARGET} proximity={proximity}/>}
+          {showLines && <Lines objects={objects} proximity={proximity} />}
+
+          {showParticles && <Particles objects={objects} proximity={proximity} />}
 
           <OrbitControls target={ORBIT_TARGET} />
-
-          <ParticlesController
-            setCurveSettings={setCurveSettings}
-            target={THICKNESS_TARGET}
-            sound={sound}
-          />
         </XR>
       </Canvas>
       <Overlay
