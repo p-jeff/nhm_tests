@@ -4,14 +4,13 @@ import * as THREE from "three";
 
 const LineThicknessController = ({
   materialRef,
-  target,
+  proximity,
   setBloomIntensity,
   lineRefs,
 }) => {
   // Leva controls
   const {
     isLineEnabled,
-    maxDist,
     minWidth,
     maxWidth,
     isBloomEnabled,
@@ -25,13 +24,6 @@ const LineThicknessController = ({
       isLineEnabled: {
         value: true,
         label: "Enable Line Effects",
-      },
-      maxDist: {
-        value: 3,
-        min: 1,
-        max: 10,
-        step: 0.1,
-        label: "Max Distance",
       },
       minWidth: {
         value: 0.4,
@@ -96,11 +88,8 @@ const LineThicknessController = ({
   useFrame((state) => {
     if (!materialRef.current.length) return;
 
-    const camera = state.camera;
-    const distance = camera.position.distanceTo(target);
-    const normalizedDist = Math.min(distance / maxDist, 1);
+    const normalizedDist = 1 - proximity
 
-    // Update line width if line effects are enabled
     if (isLineEnabled) {
       materialRef.current.forEach((material) => {
         if (material) {

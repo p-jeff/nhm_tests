@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame, useThree} from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import { XR, createXRStore } from "@react-three/xr";
 
@@ -62,6 +62,24 @@ const Model = ({ url, curveSettings, showParticles, setObjects, objects }) => {
   );
 };
 
+const ProximitySensor = ({ target, maxDist = 10, sound, setProximity}) => {
+  const {camera} = useThree();
+  const [hasEnteredCloseArea, setHasEnteredCloseArea] = useState(false); 
+
+  useFrame(() => {
+    const distance = camera.position.distanceTo(target);
+    const normalizedDist = Math.min(distance / maxDist, 1);
+    const proximity = 1 - normalizedDist;
+
+    setProximity(proximity);
+
+    if (proximity > 0.90 && !hasEnteredCloseArea) {
+      setHasEnteredCloseArea(true);
+      sound.play()
+    }    
+  });
+};
+
 const LinesOrPlanes = () => {
   const modelPath = process.env.PUBLIC_URL + "/cat _with_lines.glb";
 
@@ -85,6 +103,8 @@ const LinesOrPlanes = () => {
     sizeVariable: 0.025,
     speed: 0.0001,
   });
+
+  const [proximity, setProximity] = useState(0);
 
   const [objects, setObjects] = useState([]);
   const [isOverlayVisible, setIsOverlayVisible] = useState(true);
@@ -110,6 +130,9 @@ const LinesOrPlanes = () => {
         <XR store={store}>
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
+
+          <ProximitySensor target={THICKNESS_TARGET} maxDist={10} sound={sound} setProximity={setProximity}/>
+
           <Model
             url={modelPath}
             curveSettings={curveSettings}
@@ -120,7 +143,7 @@ const LinesOrPlanes = () => {
 
           {showPlanes && <Planes objects={objects} />}
 
-          {showLines && <Lines objects={objects} target={THICKNESS_TARGET} />}
+          {showLines && <Lines objects={objects} target={THICKNESS_TARGET} proximity={proximity}/>}
 
           <OrbitControls target={ORBIT_TARGET} />
 

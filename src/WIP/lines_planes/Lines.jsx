@@ -5,7 +5,7 @@ import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
 import LineThicknessController from "./LineThicknessController";
 
-const Lines = ({ objects, target }) => {
+const Lines = ({ objects, target, proximity }) => {
   const groupRef = useRef();
   const [bloomIntensity, setBloomIntensity] = useState(0);
   const materialRef = useRef([]);
@@ -63,7 +63,7 @@ const Lines = ({ objects, target }) => {
 
   return (
     <group ref={groupRef}>
-      <LineThicknessController lineRefs={lineRefs} materialRef={materialRef} setBloomIntensity={setBloomIntensity} target={target} />
+      <LineThicknessController lineRefs={lineRefs} materialRef={materialRef} setBloomIntensity={setBloomIntensity} target={target} proximity={proximity}/>
     </group>
   );
 };
