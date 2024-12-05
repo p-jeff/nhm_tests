@@ -12,10 +12,9 @@ const vertexShader = `
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
   }
 `;
-
 const fragmentShader = `
   void main() {
-    gl_FragColor = vec4(0.82, 0.71, 0.55, 1.0); // Color: #d2b48c
+    gl_FragColor = vec4(0.82, 0.71, 0.55, 0.5); // Color: #d2b48c with 50% transparency
   }
 `;
 
@@ -51,7 +50,6 @@ const Planes = ({ objects }) => {
     objects.forEach((object, index) => {
       if (object.geometry) {
         const positionAttribute = object.geometry.attributes.position;
-        console.log(positionAttribute);
         const vertices = [];
 
         for (let i = 0; i < positionAttribute.count; i++) {
@@ -60,8 +58,6 @@ const Planes = ({ objects }) => {
           vertex.applyMatrix4(object.matrixWorld); // Transform to world space
           vertices.push(vertex);
         }
-
-        console.log(vertices);
 
         const shape = new THREE.Shape();
         shape.autoClose = true; // Ensure the shape is closed
@@ -118,7 +114,7 @@ const Planes = ({ objects }) => {
     });
   });
 
-  return <group ref={groupRef} />;
+  return <group ref={groupRef} scale={0.5}/>;
 };
 
 export default Planes;

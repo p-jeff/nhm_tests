@@ -62,7 +62,7 @@ const Lines = ({ objects, target, proximity }) => {
   }, [objects]);
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} scale={0.5}>
       <LineThicknessController lineRefs={lineRefs} materialRef={materialRef} setBloomIntensity={setBloomIntensity} target={target} proximity={proximity}/>
     </group>
   );

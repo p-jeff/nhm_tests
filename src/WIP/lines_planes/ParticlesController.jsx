@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 const ParticlesController = ({
   setCurveSettings,
   proximity,
-  maxDist = 3,
 }) => {
   const { offset, sizeCenter, sizeVariable, speed } = useControls({
     "Particles Settings": folder(
@@ -45,8 +44,9 @@ const ParticlesController = ({
   });
 
   useFrame(() => {
-    const minSize = 0.005;
+    const minSize = 0.0005;
     const maxSize = 0.1;
+
     const adjustedSize = THREE.MathUtils.lerp(minSize, maxSize, proximity);
 
     // Add tiny offset animation

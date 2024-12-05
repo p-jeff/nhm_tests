@@ -47,14 +47,17 @@ const Model = ({ url, setObjects }) => {
   return null;
 };
 
-const ProximitySensor = ({ target, maxDist = 10, sound, setProximity }) => {
+const ProximitySensor = ({ target, maxDist = 2, sound, setProximity }) => {
   const { camera } = useThree();
   const [hasEnteredCloseArea, setHasEnteredCloseArea] = useState(false);
 
   useFrame(() => {
     const distance = camera.position.distanceTo(target);
+    console.log("Distance" + distance);
     const normalizedDist = Math.min(distance / maxDist, 1);
-    const proximity = 1 - normalizedDist;
+    console.log("Normalized Distance" + normalizedDist);
+    const prox = 1 - normalizedDist;
+    const proximity = prox * prox * prox;
 
     setProximity(proximity);
 
@@ -103,7 +106,6 @@ const LinesOrPlanes = () => {
 
   return (
     <>
-      <Leva collapsed={true} />
       <Canvas>
         <XR store={store}>
           <ambientLight intensity={0.5} />
@@ -111,7 +113,6 @@ const LinesOrPlanes = () => {
 
           <ProximitySensor
             target={THICKNESS_TARGET}
-            maxDist={10}
             sound={sound}
             setProximity={setProximity}
           />

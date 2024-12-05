@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import ParticlesController from "./ParticlesController";
 
-const Particles = ({ objects, offset, speed, sizeCenter, sizeVariable }) => {
-  const [curves, setCurves] = useState([]);
+const Particles = ({ objects, proximity }) => {
   const particlesArrayRef = useRef([]);
   const groupRef = useRef();
 
   const [curveSetting, setCurveSettings] = useState({
     offset: 0.03,
-    sizeCenter: 0.075,
+    sizeCenter: 0.04,
     sizeVariable: 0.01,
     speed: 1,
   });
@@ -58,7 +58,6 @@ const Particles = ({ objects, offset, speed, sizeCenter, sizeVariable }) => {
   }
 
   useEffect(() => {
-    const generatedCurves = [];
     const particlesArray = [];
 
     objects.forEach((object) => {
@@ -77,19 +76,17 @@ const Particles = ({ objects, offset, speed, sizeCenter, sizeVariable }) => {
         curvePoints.push(curvePoints[0]);
 
         const curve = new CustomCurve(curvePoints);
-        generatedCurves.push(curve);
 
-        // Create white dot particles along the curve with varying sizes
-        const particleCount = 200; // Increase the number of particles for smoother animation
+        const particleCount = 100; // Increase the number of particles for smoother animation
         const particlePositions = new Float32Array(particleCount * 3);
         const particleSizes = new Float32Array(particleCount);
 
         for (let i = 0; i < particleCount; i++) {
           const t = i / particleCount;
           const point = curve.getPoint(t);
-          const offsetX = (Math.random() - 0.5) * offset;
-          const offsetY = (Math.random() - 0.5) * offset;
-          const offsetZ = (Math.random() - 0.5) * offset;
+          const offsetX = (Math.random() - 0.5) * curveSetting.offset;
+          const offsetY = (Math.random() - 0.5) * curveSetting.offset;
+          const offsetZ = (Math.random() - 0.5) * curveSetting.offset;
           particlePositions[i * 3] = point.x + offsetX;
           particlePositions[i * 3 + 1] = point.y + offsetY;
           particlePositions[i * 3 + 2] = point.z + offsetZ;
@@ -97,11 +94,12 @@ const Particles = ({ objects, offset, speed, sizeCenter, sizeVariable }) => {
         }
 
         const particlesGeometry = new THREE.BufferGeometry();
-        
+
         particlesGeometry.setAttribute(
           "position",
           new THREE.BufferAttribute(particlePositions, 3)
         );
+
         particlesGeometry.setAttribute(
           "size",
           new THREE.BufferAttribute(particleSizes, 1)
@@ -111,8 +109,12 @@ const Particles = ({ objects, offset, speed, sizeCenter, sizeVariable }) => {
           uniforms: {
             color: { value: new THREE.Color(0xffffff) },
             time: { value: 0 },
-            minSize: { value: sizeCenter - sizeVariable },
-            maxSize: { value: sizeCenter + sizeVariable },
+            minSize: {
+              value: curveSetting.sizeCenter - curveSetting.sizeVariable,
+            },
+            maxSize: {
+              value: curveSetting.sizeCenter + curveSetting.sizeVariable,
+            },
           },
           vertexShader: `
             attribute float size;
@@ -143,14 +145,10 @@ const Particles = ({ objects, offset, speed, sizeCenter, sizeVariable }) => {
         );
 
         groupRef.current.add(particles);
-        console.log(particles);
-        particlesArrayRef.current.push({ particles, curve });
-
+        particlesArray.push({ particles, curve });
       }
     });
-
     particlesArrayRef.current = particlesArray;
-    setCurves(generatedCurves);
   }, [objects]);
 
   const offsets = useRef([]);
@@ -159,24 +157,26 @@ const Particles = ({ objects, offset, speed, sizeCenter, sizeVariable }) => {
     particlesArrayRef.current.forEach(({ particles, curve }) => {
       const positions = particles.geometry.attributes.position.array;
       const numPoints = positions.length / 3;
-      const time = Date.now() * (speed * 0.00001);
+      const time = Date.now() * (curveSetting.speed * 0.00001);
 
-      // Reset offsets when offset prop changes
       if (
         offsets.current.length !== numPoints ||
-        Math.abs(offsets.current[0]?.x) > offset
+        Math.abs(offsets.current[0]?.x) > curveSetting.offset
       ) {
         // Check if current offsets exceed new offset value
         offsets.current = new Array(numPoints).fill().map(() => ({
-          x: (Math.random() - 0.5) * offset,
-          y: (Math.random() - 0.5) * offset,
-          z: (Math.random() - 0.5) * offset,
+          x: (Math.random() - 0.5) * curveSetting.offset,
+          y: (Math.random() - 0.5) * curveSetting.offset,
+          z: (Math.random() - 0.5) * curveSetting.offset,
         }));
       }
 
       particles.material.uniforms.time.value = Date.now() * 0.001;
-      particles.material.uniforms.minSize.value = sizeCenter - sizeVariable;
-      particles.material.uniforms.maxSize.value = sizeCenter + sizeVariable;
+      particles.material.uniforms.minSize.value =
+        curveSetting.sizeCenter 
+
+      particles.material.uniforms.maxSize.value =
+        curveSetting.sizeCenter 
 
       for (let i = 0; i < numPoints; i++) {
         const t = (i / numPoints + (time % 1)) % 1;
@@ -190,7 +190,14 @@ const Particles = ({ objects, offset, speed, sizeCenter, sizeVariable }) => {
       particles.geometry.attributes.position.needsUpdate = true;
     });
   });
-  return <group ref={groupRef} />;
+  return (
+    <group ref={groupRef} scale={0.5}>
+      <ParticlesController
+        proximity={proximity}
+        setCurveSettings={setCurveSettings}
+      />
+    </group>
+  );
 };
 
 export default Particles;
