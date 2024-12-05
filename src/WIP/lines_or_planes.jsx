@@ -1,31 +1,23 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
-import * as THREE from "three";
-import ParticlesController from "./lines_planes/ParticlesController";
 import { XR, createXRStore } from "@react-three/xr";
+
+import * as THREE from "three";
+
+import { Howl } from "howler";
+import { useControls, Leva } from "leva";
+
 import Overlay from "./lines_planes/Overlay";
 import Particles from "./lines_planes/Particles";
 import Lines from "./lines_planes/Lines";
 import Planes from "./lines_planes/Planes";
-import { Howl } from "howler";
-import { useControls } from "leva";
-import LineThicknessController from "./lines_planes/LineThicknessController";
-import { Leva } from "leva";
+import ParticlesController from "./lines_planes/ParticlesController";
 
 const store = createXRStore();
 
-const Model = ({
-  url,
-  materialRef,
-  lineRefs,
-  curveSettings,
-  showParticles,
-  showLines,
-  showPlanes,
-}) => {
+const Model = ({ url, curveSettings, showParticles, setObjects, objects }) => {
   const { scene } = useGLTF(url);
-  const [objects, setObjects] = useState([]);
 
   useEffect(() => {
     const planarObjects = [];
@@ -51,7 +43,7 @@ const Model = ({
     );
 
     setObjects(planarObjects);
-  }, [scene, materialRef, lineRefs]);
+  }, [scene]);
 
   return (
     <group>
@@ -66,34 +58,20 @@ const Model = ({
           speed={curveSettings.speed}
         />
       )}
-      {showPlanes && (
-        <Planes
-          objects={objects}
-          scene={scene}
-          materialRef={materialRef}
-          lineRefs={lineRefs}
-        />
-      )}
-      {showLines && (
-        <Lines
-          objects={objects}
-          scene={scene}
-          materialRef={materialRef}
-          lineRefs={lineRefs}
-        />
-      )}
     </group>
   );
 };
 
 const LinesOrPlanes = () => {
   const modelPath = process.env.PUBLIC_URL + "/cat _with_lines.glb";
+
   const THICKNESS_TARGET = new THREE.Vector3(
     -1.256700255249674,
     0.9821507155358848,
     1.0079573275129785
-  ); // For line thickness calculation
-  const ORBIT_TARGET = new THREE.Vector3(0, 0, 0); // For camera orbit center
+  );
+
+  const ORBIT_TARGET = new THREE.Vector3(0, 0, 0);
 
   const { showLines, showPlanes, showParticles } = useControls({
     showLines: false,
@@ -101,16 +79,14 @@ const LinesOrPlanes = () => {
     showParticles: false,
   });
 
-    const [curveSettings, setCurveSettings] = useState({
+  const [curveSettings, setCurveSettings] = useState({
     offset: 0.01,
     sizeCenter: 0.075,
     sizeVariable: 0.025,
     speed: 0.0001,
   });
 
-  const materialRef = useRef([]);
-  const [bloomIntensity, setBloomIntensity] = useState(0);
-  const lineRefs = useRef([]);
+  const [objects, setObjects] = useState([]);
   const [isOverlayVisible, setIsOverlayVisible] = useState(true);
   const [sound, setSound] = useState(null);
 
@@ -136,20 +112,18 @@ const LinesOrPlanes = () => {
           <directionalLight position={[10, 10, 5]} intensity={1} />
           <Model
             url={modelPath}
-            materialRef={materialRef}
-            lineRefs={lineRefs}
             curveSettings={curveSettings}
-            showLines={showLines}
-            showPlanes={showPlanes}
             showParticles={showParticles}
+            setObjects={setObjects}
+            objects={objects}
           />
+
+          {showPlanes && <Planes objects={objects} />}
+
+          {showLines && <Lines objects={objects} target={THICKNESS_TARGET} />}
+
           <OrbitControls target={ORBIT_TARGET} />
-          <LineThicknessController
-            materialRef={materialRef}
-            target={THICKNESS_TARGET}
-            setBloomIntensity={setBloomIntensity}
-            lineRefs={lineRefs}
-          />
+
           <ParticlesController
             setCurveSettings={setCurveSettings}
             target={THICKNESS_TARGET}

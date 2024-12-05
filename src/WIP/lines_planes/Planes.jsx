@@ -19,7 +19,7 @@ const fragmentShader = `
   }
 `;
 
-const Planes = ({ objects, scene }) => {
+const Planes = ({ objects }) => {
   const materialsRef = useRef([]);
   const groupRef = useRef();
 
@@ -108,7 +108,7 @@ const Planes = ({ objects, scene }) => {
         groupRef.current.add(plane);
       }
     });
-  }, [objects, scene, intensity, showOutline]);
+  }, [objects, intensity, showOutline]);
 
   useFrame(() => {
     materialsRef.current.forEach((material) => {

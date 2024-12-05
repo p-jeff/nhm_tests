@@ -196,7 +196,7 @@ const Particles = ({
       particles.geometry.attributes.position.needsUpdate = true;
     });
   });
-  return ;
+  return null;
 };
 
 export default Particles;
