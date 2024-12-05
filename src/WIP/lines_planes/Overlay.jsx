@@ -35,13 +35,12 @@ export default function Overlay({ isVisible, setIsVisible, store }) {
         flexDirection: "column",
       }}
     >
-      <h2>Lines or Planes Prototype</h2>
+      <h2>Fragment Prototype 2.1</h2>
       <p style={{ maxWidth: "80%", fontSize: "1.2em" }}>
-        Lines will change thickness based on camera distance from target point.
-        Once target point is reached, a sound will play. There are some scaling
-        issues in AR/VR, make sure to press reset button before entering AR/VR.
-        Model should be about knee height.
+        Outlines (both particles and lines) will change thickness based on camera distance from target point.
+        Once target point is reached, a sound will play. 
         <br />
+        Use the menu in the to right to enable / disable different object - types.
         <br />
         In AR/VR, the model will be positioned at origin.
         <br />
