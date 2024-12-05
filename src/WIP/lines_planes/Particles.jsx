@@ -1,18 +1,17 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import ParticlesController from "./ParticlesController";
 
-const Particles = ({ objects, offset, speed, sizeCenter, sizeVariable, proximity }) => {
+const Particles = ({ objects, offset, speed, sizeCenter, sizeVariable }) => {
   const [curves, setCurves] = useState([]);
   const particlesArrayRef = useRef([]);
   const groupRef = useRef();
 
-  const [curveSettings, setCurveSettings] = useState({
-    offset: 0.01,
+  const [curveSetting, setCurveSettings] = useState({
+    offset: 0.03,
     sizeCenter: 0.075,
-    sizeVariable: 0.025,
-    speed: 0.0001,
+    sizeVariable: 0.01,
+    speed: 1,
   });
 
   class CustomCurve extends THREE.Curve {
@@ -98,6 +97,7 @@ const Particles = ({ objects, offset, speed, sizeCenter, sizeVariable, proximity
         }
 
         const particlesGeometry = new THREE.BufferGeometry();
+        
         particlesGeometry.setAttribute(
           "position",
           new THREE.BufferAttribute(particlePositions, 3)
@@ -143,8 +143,9 @@ const Particles = ({ objects, offset, speed, sizeCenter, sizeVariable, proximity
         );
 
         groupRef.current.add(particles);
-        console.log(groupRef);
-        particlesArray.push({ particles, curve });
+        console.log(particles);
+        particlesArrayRef.current.push({ particles, curve });
+
       }
     });
 
@@ -189,11 +190,7 @@ const Particles = ({ objects, offset, speed, sizeCenter, sizeVariable, proximity
       particles.geometry.attributes.position.needsUpdate = true;
     });
   });
-  return (
-    <group ref={groupRef} scale={0.5}>
-      <ParticlesController proximity={proximity} setCurveSettings={setCurveSettings}/>
-    </group>
-  );
+  return <group ref={groupRef} />;
 };
 
 export default Particles;

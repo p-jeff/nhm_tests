@@ -12,7 +12,6 @@ import Overlay from "./lines_planes/Overlay";
 import Particles from "./lines_planes/Particles";
 import Lines from "./lines_planes/Lines";
 import Planes from "./lines_planes/Planes";
-import ParticlesController from "./lines_planes/ParticlesController";
 
 const store = createXRStore();
 
