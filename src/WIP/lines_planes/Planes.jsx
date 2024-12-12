@@ -22,33 +22,41 @@ const Planes = ({ objects, proximity }) => {
   const materialsRef = useRef([]);
   const groupRef = useRef();
 
-  const { intensity, showOutline,perspectiveBasedIntensity, reverse } = useControls(
-    "Plane Controls", // This creates a folder/group
-    {
-      intensity: {
-        value: 0.03,
-        min: 0,
-        max: 0.1,
-        step: 0.001,
+  const { intensity, showOutline, perspectiveBasedIntensity } =
+    useControls(
+      "Plane Controls", // This creates a folder/group
+      {
+        intensity: {
+          value: 0.03,
+          min: 0,
+          max: 0.1,
+          step: 0.001,
+        },
+        showOutline: {
+          value: false,
+        },
+        perspectiveBasedIntensity: {
+          options: ["Off", "High to low", "Low to high"],
+          value: "Off",
+        },
       },
-      showOutline: {
-        value: false,
-      },
-      perspectiveBasedIntensity: { value: true },
-      reverse: { value: false },
-    },
-    { collapsed: true }
-  );
+      { collapsed: true }
+    );
 
   function updateWaveIntensity() {
-    if(reverse) {
-      proximity = 1 - proximity;
-    }
-    const minIntensity = intensity * 0.1;
-    const maxIntensity = intensity * 1.2;
+    let waveIntensity = intensity;
+    if (perspectiveBasedIntensity === "Off") return;
+    else if (perspectiveBasedIntensity === "High to low") {
+      const minIntensity = intensity * 0.1;
+      const maxIntensity = intensity * 1.2;
 
-    const waveIntensity =
-      minIntensity + (maxIntensity - minIntensity) * proximity;
+      waveIntensity = maxIntensity - (maxIntensity - minIntensity) * proximity;
+    } else if (perspectiveBasedIntensity === "Low to high") {
+      const minIntensity = intensity * 0.1;
+      const maxIntensity = intensity * 1.2;
+
+      waveIntensity = minIntensity + (maxIntensity - minIntensity) * proximity;
+    }
 
     materialsRef.current.forEach((material, index) => {
       material.uniforms.intensity.value = waveIntensity;
@@ -88,18 +96,12 @@ const Planes = ({ objects, proximity }) => {
         // Create a geometry from the shape
         const geometry = new THREE.ShapeGeometry(shape);
 
-        const minIntensity = intensity * 0.1;
-        const maxIntensity = intensity * 1.2;
-
-        const waveIntensity =
-          minIntensity + (maxIntensity - minIntensity) * proximity;
-
         const material = new THREE.ShaderMaterial({
           vertexShader,
           fragmentShader,
           uniforms: {
             time: { value: 0 },
-            intensity: { value: waveIntensity },
+            intensity: { value: intensity },
           },
           side: THREE.DoubleSide,
         });
@@ -130,7 +132,7 @@ const Planes = ({ objects, proximity }) => {
   }, [objects, intensity, showOutline]);
 
   useFrame(() => {
-    if (perspectiveBasedIntensity) {
+    if (perspectiveBasedIntensity !== "Off") {
       updateWaveIntensity();
     }
 
