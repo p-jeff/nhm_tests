@@ -18,11 +18,11 @@ const fragmentShader = `
   }
 `;
 
-const Planes = ({ objects }) => {
+const Planes = ({ objects, proximity }) => {
   const materialsRef = useRef([]);
   const groupRef = useRef();
 
-  const { intensity, showOutline } = useControls(
+  const { intensity, showOutline,perspectiveBasedIntensity, reverse } = useControls(
     "Plane Controls", // This creates a folder/group
     {
       intensity: {
@@ -34,9 +34,26 @@ const Planes = ({ objects }) => {
       showOutline: {
         value: false,
       },
+      perspectiveBasedIntensity: { value: true },
+      reverse: { value: false },
     },
     { collapsed: true }
   );
+
+  function updateWaveIntensity() {
+    if(reverse) {
+      proximity = 1 - proximity;
+    }
+    const minIntensity = intensity * 0.1;
+    const maxIntensity = intensity * 1.2;
+
+    const waveIntensity =
+      minIntensity + (maxIntensity - minIntensity) * proximity;
+
+    materialsRef.current.forEach((material, index) => {
+      material.uniforms.intensity.value = waveIntensity;
+    });
+  }
 
   useEffect(() => {
     if (groupRef.current) {
@@ -71,12 +88,18 @@ const Planes = ({ objects }) => {
         // Create a geometry from the shape
         const geometry = new THREE.ShapeGeometry(shape);
 
+        const minIntensity = intensity * 0.1;
+        const maxIntensity = intensity * 1.2;
+
+        const waveIntensity =
+          minIntensity + (maxIntensity - minIntensity) * proximity;
+
         const material = new THREE.ShaderMaterial({
           vertexShader,
           fragmentShader,
           uniforms: {
             time: { value: 0 },
-            intensity: { value: intensity },
+            intensity: { value: waveIntensity },
           },
           side: THREE.DoubleSide,
         });
@@ -107,6 +130,10 @@ const Planes = ({ objects }) => {
   }, [objects, intensity, showOutline]);
 
   useFrame(() => {
+    if (perspectiveBasedIntensity) {
+      updateWaveIntensity();
+    }
+
     materialsRef.current.forEach((material) => {
       if (material) {
         material.uniforms.time.value += 0.05;
@@ -114,7 +141,7 @@ const Planes = ({ objects }) => {
     });
   });
 
-  return <group ref={groupRef} scale={0.5}/>;
+  return <group ref={groupRef} scale={0.5} />;
 };
 
 export default Planes;

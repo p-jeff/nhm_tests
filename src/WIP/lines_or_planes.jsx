@@ -53,9 +53,9 @@ const ProximitySensor = ({ target, maxDist = 2, sound, setProximity }) => {
 
   useFrame(() => {
     const distance = camera.position.distanceTo(target);
-    console.log("Distance" + distance);
+
     const normalizedDist = Math.min(distance / maxDist, 1);
-    console.log("Normalized Distance" + normalizedDist);
+    
     const prox = 1 - normalizedDist;
     const proximity = prox * prox * prox;
 
@@ -119,7 +119,7 @@ const LinesOrPlanes = () => {
 
           <Model url={modelPath} setObjects={setObjects} />
 
-          {showPlanes && <Planes objects={objects} />}
+          {showPlanes && <Planes objects={objects} proximity={proximity} />}
 
           {showLines && <Lines objects={objects} proximity={proximity} />}
 
